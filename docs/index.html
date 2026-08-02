@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refresh / Content Opportunity Scoring — Youssef Abozaid</title>
+<style>
+  :root{
+    --paper:#f6f5f1;
+    --ink:#1c2321;
+    --ink-soft:#4a534f;
+    --line:#d8d5cb;
+    --signal:#1b6b64;
+    --signal-soft:#e4efed;
+    --up:#2e7d4f;
+    --down:#b8452f;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --serif:'Source Serif 4','Georgia',serif;
+    --sans:'Inter','Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+  }
+  ::selection{background:var(--signal-soft);color:var(--signal);}
+
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+
+  header.hero{
+    border-bottom:1px solid var(--line);
+    padding:72px 0 40px;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--signal);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);}
+  h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(30px,5vw,44px);
+    line-height:1.15;
+    margin:18px 0 20px;
+    max-width:15ch;
+  }
+  .meta{
+    display:flex;flex-wrap:wrap;gap:8px 24px;
+    font-size:13px;color:var(--ink-soft);
+    font-family:var(--mono);
+  }
+  .meta a{color:var(--signal);text-decoration:none;border-bottom:1px solid transparent;}
+  .meta a:hover{border-bottom-color:var(--signal);}
+
+  .abstract{
+    margin-top:28px;
+    padding:20px 22px;
+    background:var(--signal-soft);
+    border-left:3px solid var(--signal);
+    font-size:15.5px;
+    color:var(--ink);
+  }
+  .abstract strong{color:var(--signal);}
+
+  nav.toc{
+    padding:28px 0;
+    border-bottom:1px solid var(--line);
+    font-family:var(--mono);
+    font-size:13px;
+  }
+  nav.toc ol{
+    list-style:none;margin:0;padding:0;
+    display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;
+  }
+  nav.toc a{color:var(--ink-soft);text-decoration:none;}
+  nav.toc a:hover{color:var(--signal);}
+  nav.toc span.n{color:var(--signal);margin-right:6px;}
+
+  main{padding:8px 0 40px;}
+  section{padding:44px 0;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  section h2{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--signal);
+    margin:0 0 6px;
+  }
+  section h2 .num{color:var(--ink-soft);margin-right:10px;}
+  section h3{
+    font-family:var(--serif);
+    font-size:23px;
+    font-weight:600;
+    margin:0 0 18px;
+  }
+  section p{margin:0 0 14px;color:var(--ink);}
+  section p.soft{color:var(--ink-soft);font-size:14.5px;}
+  section ul{padding-left:20px;margin:0 0 14px;}
+  section li{margin-bottom:8px;}
+  code, .code{
+    font-family:var(--mono);
+    background:#eceae2;
+    padding:1px 6px;
+    border-radius:3px;
+    font-size:.88em;
+  }
+
+  table.datatable{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0 22px;
+    font-family:var(--mono);
+    font-size:13.5px;
+  }
+  table.datatable th, table.datatable td{
+    text-align:left;
+    padding:9px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  table.datatable th{
+    color:var(--ink-soft);
+    font-weight:600;
+    text-transform:uppercase;
+    font-size:11px;
+    letter-spacing:.06em;
+  }
+  table.datatable tr.highlight td{background:var(--signal-soft);font-weight:600;}
+  .num-cell{text-align:right;}
+  .up{color:var(--up);}
+  .down{color:var(--down);}
+
+  .callout{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:18px 20px;
+    margin:18px 0;
+  }
+  .callout .label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--signal);margin-bottom:8px;display:block;
+  }
+
+  .bars{margin:20px 0;}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 60px;align-items:center;gap:12px;margin-bottom:10px;font-family:var(--mono);font-size:13px;}
+  .bar-track{background:#e9e7de;border-radius:3px;height:14px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--signal);border-radius:3px;}
+  .bar-val{text-align:right;color:var(--ink-soft);}
+
+  .queue-sample{overflow-x:auto;}
+  .tag{
+    display:inline-block;font-family:var(--mono);font-size:11px;
+    padding:2px 8px;border-radius:20px;background:var(--signal-soft);color:var(--signal);
+  }
+  .tag.warn{background:#fbeae5;color:var(--down);}
+
+  footer{
+    padding:40px 0 80px;
+    font-size:13px;
+    color:var(--ink-soft);
+    font-family:var(--mono);
+  }
+  footer a{color:var(--signal);}
+
+  @media (max-width:600px){
+    nav.toc ol{grid-template-columns:1fr;}
+    .bar-row{grid-template-columns:110px 1fr 50px;font-size:11.5px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>FlyRank AI Internship — Machine Learning Capstone</div>
+    <h1>Which pages are quietly losing search visibility — and which one should an editor open first?</h1>
+    <div class="meta">
+      <span>Youssef Abozaid</span>
+      <span>Refresh / Content Opportunity Scoring</span>
+      <span>2026-08-02</span>
+      <a href="https://github.com/youssefabozaidyou/flyrank-ml-internship" target="_blank">Repo →</a>
+    </div>
+    <div class="abstract">
+      <strong>Abstract.</strong> Content editors can't manually re-check thousands of pages a month, so pages that are quietly declining in search visibility often go unnoticed. Using one month of FlyRank's search-performance warehouse, a page-level feature set was built from prior-window signals only (impressions, position, clicks, sessions), and a declining-visibility label was defined from a later window that was never fed into the model. A logistic regression model, evaluated on a client-holdout split against a transparent baseline rule, reached <strong>0.700 precision</strong> in its top-50 ranked picks — above the <strong>0.680</strong> baseline and clearly above the <strong>0.224</strong> base rate — giving editors a directional, decision-support queue to work from each week.
+    </div>
+  </header>
+
+  <nav class="toc">
+    <ol>
+      <li><a href="#intro"><span class="n">01</span>Introduction</a></li>
+      <li><a href="#data"><span class="n">02</span>Data</a></li>
+      <li><a href="#method"><span class="n">03</span>Methodology</a></li>
+      <li><a href="#results"><span class="n">04</span>Results</a></li>
+      <li><a href="#limits"><span class="n">05</span>Limitations</a></li>
+      <li><a href="#recs"><span class="n">06</span>Recommendations</a></li>
+      <li><a href="#repro"><span class="n">07</span>Reproducibility</a></li>
+      <li><a href="#credit"><span class="n">08</span>Acknowledgments</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="intro">
+      <h2><span class="num">01</span>Introduction</h2>
+      <h3>The problem this supports</h3>
+      <p>A FlyRank content editor manages far more pages than they can manually audit in a given week. The decision this work supports is simple to state and hard to do by hand: <em>which pages should be reviewed for a refresh this week, and why?</em></p>
+      <p class="soft">Unit of analysis: one content page, scored once per month. Output: a ranked list with a decline-risk score and a plain-language reason code. A wrong call has a real cost either way — a false alarm wastes an editor's hour, and a missed one lets a page keep losing visibility for another month unnoticed.</p>
+    </section>
+
+    <section id="data">
+      <h2><span class="num">02</span>Data</h2>
+      <h3>FlyRank internship warehouse, one mid-panel month</h3>
+      <p>This work uses the pseudonymized FlyRank warehouse release (v20260703) hosted on Hugging Face — specifically <code>fact_content_daily_performance</code>, filtered to <code>month = '2026-03'</code>, a mid-panel month chosen deliberately over the most recent month (which is a sealed evaluation window for any past→future label).</p>
+      <div class="callout">
+        <span class="label">Excluded on purpose</span>
+        <p style="margin:0">The warehouse's own <code>trend_direction</code> and <code>trend_pct</code> columns are exactly how the label in this work is defined — using them as features would mean feeding the model its own answer. They are excluded everywhere. Pseudonymous client and content IDs are used only to group the train/test split, never as inputs.</p>
+      </div>
+      <p class="soft">No client names, domains, URLs, or raw exports appear anywhere in this work — only pseudonymous hash identifiers used for grouping.</p>
+    </section>
+
+    <section id="method">
+      <h2><span class="num">03</span>Methodology</h2>
+      <h3>Past-only features, a held-out label window</h3>
+      <p>The analysis month is split in half. The <strong>prior</strong> half supplies every feature; the <strong>later</strong> half supplies the label only. A page is labeled <code>declining</code> if its total impressions fell from the prior half to the later half — an observed outcome, not a hand-written rule.</p>
+      <p><strong>Features</strong> — five, all knowable before the label window: average prior impressions, average prior search position, average prior GA4 sessions, average prior clicks, and how many days of data the page had in the prior window.</p>
+      <p><strong>Baseline</strong> — a transparent rule computed the same way the model's features are: percentage drop in impressions between two sub-windows of the prior half. Not a shortcut through the label.</p>
+      <p><strong>Models</strong> — logistic regression (transparent, coefficients read directly) and random forest (a non-linear comparison), both trained with class weighting for the 22.4% minority "declining" rate.</p>
+      <p><strong>Validation</strong> — a client-holdout split: whole clients assigned to train or test, never split within a client, so the model is judged on clients it has never seen. 39 clients trained on, 13 held out, zero overlap.</p>
+    </section>
+
+    <section id="results">
+      <h2><span class="num">04</span>Results</h2>
+      <h3>Model vs. baseline, same split, same metric</h3>
+      <p class="soft">Base rate (majority class, "not declining"): <strong>0.224</strong> — carried alongside every score below, since a high number means little without it.</p>
+      <table class="datatable">
+        <thead><tr><th>Method</th><th class="num-cell">Precision@50</th><th class="num-cell">ROC-AUC</th></tr></thead>
+        <tbody>
+          <tr><td>Baseline rule</td><td class="num-cell">0.680</td><td class="num-cell">—</td></tr>
+          <tr class="highlight"><td>Logistic Regression (deployed)</td><td class="num-cell">0.700</td><td class="num-cell">0.818</td></tr>
+          <tr><td>Random Forest</td><td class="num-cell">0.480</td><td class="num-cell">0.834</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <span class="label">An honest, unexpected result</span>
+        <p style="margin:0">Random Forest wins on overall discrimination (ROC-AUC) but loses to the baseline on the metric that actually matters here — precision in the top 50. Class-balancing spreads its confidence broadly across the minority class, which helps its AUC but doesn't concentrate correctly at the very top of the ranking. Since editors only ever work a short list, precision at the top decided the model choice: <strong>logistic regression is what's deployed</strong>, not the model with the higher AUC.</p>
+      </div>
+      <h3 style="margin-top:36px;font-size:19px;">What the features are doing</h3>
+      <div class="bars">
+        <div class="bar-row"><span>Prior impressions</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">0.526</span></div>
+        <div class="bar-row"><span>Prior position</span><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div><span class="bar-val">0.408</span></div>
+        <div class="bar-row"><span>Prior clicks</span><div class="bar-track"><div class="bar-fill" style="width:8%"></div></div><span class="bar-val">0.042</span></div>
+        <div class="bar-row"><span>Days present</span><div class="bar-track"><div class="bar-fill" style="width:3%"></div></div><span class="bar-val">0.017</span></div>
+        <div class="bar-row"><span>Prior sessions (GA4)</span><div class="bar-track"><div class="bar-fill" style="width:2%"></div></div><span class="bar-val">0.008</span></div>
+      </div>
+      <p class="soft">Random Forest feature importances. Recent impressions and search position do almost all of the work — engagement data (GA4 sessions) added comparatively little in this window, and prior clicks carried a mildly negative relationship with decline risk in the logistic model, plausibly because high-click-through pages simply have less headroom left to grow.</p>
+    </section>
+
+    <section id="limits">
+      <h2><span class="num">05</span>Limitations</h2>
+      <ul>
+        <li><strong>Not causal.</strong> Nothing here proves a refresh will improve a page's performance — only that a pattern was observed in past data.</li>
+        <li><strong>Not a claim about Google's algorithm.</strong> The label is built entirely from FlyRank's own metrics.</li>
+        <li><strong>One month, one snapshot.</strong> Seasonal effects and shifts in the client mix aren't represented.</li>
+        <li><strong>Uneven history.</strong> Clients differ widely in how much prior data they have, which lowers confidence for thin-history pages specifically (flagged in Section 6).</li>
+        <li><strong>A proxy label.</strong> "Declining impressions" is a proxy for "needs review" — a page can lose impressions for reasons that have nothing to do with content quality, like seasonality.</li>
+      </ul>
+    </section>
+
+    <section id="recs">
+      <h2><span class="num">06</span>Ranked recommendations</h2>
+      <h3>The action playbook</h3>
+      <p>Each week, the top-50 scored pages become an editor's queue, tagged with a reason so the fix is obvious before they even open the page:</p>
+      <ul>
+        <li><span class="tag">position problem</span> — position is weak, impressions are still reasonable → rewrite / on-page work.</li>
+        <li><span class="tag">visibility problem</span> — impressions themselves are low or falling, position stable → consider a merge or deeper review.</li>
+        <li><span class="tag warn">mixed signal</span> — no clear pattern → needs a human look first.</li>
+      </ul>
+      <p class="soft">Pages with fewer than 5 days of prior data are separately marked low-confidence and should be weighted accordingly, not trusted at face value — see the error analysis in Section 4.</p>
+      <div class="queue-sample">
+        <table class="datatable">
+          <thead><tr><th>content id</th><th>reason code</th><th class="num-cell">risk score</th><th>confidence</th></tr></thead>
+          <tbody>
+            <tr><td>content_a1f…</td><td>visibility problem</td><td class="num-cell down">0.91</td><td>—</td></tr>
+            <tr><td>content_7c3…</td><td>position problem</td><td class="num-cell down">0.88</td><td>—</td></tr>
+            <tr><td>content_e02…</td><td>mixed signal</td><td class="num-cell down">0.84</td><td><span class="tag warn">thin history</span></td></tr>
+            <tr><td>content_b9d…</td><td>visibility problem</td><td class="num-cell down">0.81</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <p class="soft" style="margin-top:10px">Illustrative excerpt shown here with pseudonymous IDs truncated for readability — full top-50 output is generated by <code>work/notebooks/capstone.ipynb</code>, Section 6.</p>
+      </div>
+    </section>
+
+    <section id="repro">
+      <h2><span class="num">07</span>Reproducibility</h2>
+      <p>Clone the repo, install dependencies, open the capstone notebook in Colab, set an <code>HF_TOKEN</code> secret, and run top to bottom:</p>
+      <div class="callout" style="font-family:var(--mono);font-size:13px;">
+        git clone https://github.com/youssefabozaidyou/flyrank-ml-internship<br>
+        cd flyrank-ml-internship<br>
+        pip install -r requirements.txt<br>
+        <span style="color:var(--ink-soft)"># then open work/notebooks/capstone.ipynb in Colab, Runtime → Run all</span>
+      </div>
+      <p class="soft">All splits and models use <code>random_state=42</code>. Full write-up with section-by-section detail: <a href="https://github.com/youssefabozaidyou/flyrank-ml-internship/blob/main/work/capstone_report.md" style="color:var(--signal)">capstone_report.md</a>.</p>
+    </section>
+
+    <section id="credit">
+      <h2><span class="num">08</span>Acknowledgments &amp; data credit</h2>
+      <p>Built on the FlyRank ML Internship dataset — <a href="https://flyrank.ai" target="_blank">flyrank.ai</a>.</p>
+      <p class="soft">Thank you to the FlyRank team for the internship, the warehouse access, and the structure to learn how to build this kind of work honestly, end to end.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    Youssef Abozaid · Refresh / Content Opportunity Scoring · <a href="https://github.com/youssefabozaidyou/flyrank-ml-internship">github.com/youssefabozaidyou/flyrank-ml-internship</a>
+  </footer>
+</div>
+
+</body>
+</html>
